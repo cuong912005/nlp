@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Generated data/cache/checkpoints can be rebuilt or copied separately.
+summarization_project/data/processed/
+summarization_project/data/cached/
+summarization_project/tokenizer/tokenizer_models/
+summarization_project/checkpoints/
+summarization_project/outputs/
+
+# Large raw parquet files are kept local/server-side.
+*.parquet

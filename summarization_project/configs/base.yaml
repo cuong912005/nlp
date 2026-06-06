@@ -1,0 +1,23 @@
+data:
+  train_parquet: ../train-00000-of-00001.parquet
+  valid_parquet: ../valid-00000-of-00001.parquet
+  processed_dir: data/processed
+  cached_dir: data/cached
+  source_col:
+  target_col:
+
+filter:
+  min_source_words: 30
+  min_target_words: 3
+  max_source_words: 900
+  max_target_words: 180
+  max_target_source_ratio: 0.9
+
+tokenizer:
+  vocab_size: 16000
+  model_prefix: summary_bpe
+  model_path: tokenizer/tokenizer_models/summary_bpe.model
+
+length:
+  max_source_len: 512
+  max_target_len: 128
