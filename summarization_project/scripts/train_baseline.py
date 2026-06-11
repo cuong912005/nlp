@@ -36,6 +36,11 @@ def build_scheduler(optimizer: torch.optim.Optimizer, warmup_steps: int):
     return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
 
+def build_constant_scheduler(optimizer: torch.optim.Optimizer):
+    """Keep learning rate constant when scheduler ablation is requested."""
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lambda _: 1.0)
+
+
 def shift_target(batch: dict, pad_id: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Create decoder input and next-token labels from target sequence."""
     target = batch["target"]
@@ -86,8 +91,9 @@ def run_epoch(
                 optimizer.zero_grad(set_to_none=True)
                 loss.backward()
 
-                # Gradient clipping tránh spike khi article dài.
-                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+                if grad_clip and grad_clip > 0:
+                    # Gradient clipping tránh spike khi article dài.
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
 
                 optimizer.step()
                 scheduler.step()
@@ -136,11 +142,15 @@ def main() -> None:
     parser.add_argument("--heads", type=int, default=8)
     parser.add_argument("--d-ff", type=int, default=1024)
     parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--norm-type", choices=["pre", "post"], default="pre")
+    parser.add_argument("--activation", choices=["gelu", "relu"], default="gelu")
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--warmup-steps", type=int, default=1000)
     parser.add_argument("--label-smoothing", type=float, default=0.1)
     parser.add_argument("--no-share-embeddings", action="store_true")
     parser.add_argument("--no-weight-tying", action="store_true")
+    parser.add_argument("--no-scheduler", action="store_true")
+    parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--device", type=str, default="cpu")
     args = parser.parse_args()
 
@@ -169,8 +179,12 @@ def main() -> None:
         num_heads=args.heads,
         d_ff=args.d_ff,
         dropout=args.dropout,
+        norm_type=args.norm_type,
+        activation=args.activation,
         learning_rate=args.lr,
         warmup_steps=args.warmup_steps,
+        grad_clip=args.grad_clip,
+        use_scheduler=not args.no_scheduler,
         label_smoothing=args.label_smoothing,
         share_embeddings=not args.no_share_embeddings,
         weight_tying=not args.no_weight_tying,
@@ -190,7 +204,11 @@ def main() -> None:
         betas=(0.9, 0.98),
         eps=1e-9,
     )
-    scheduler = build_scheduler(optimizer, config.warmup_steps)
+    scheduler = (
+        build_scheduler(optimizer, config.warmup_steps)
+        if config.use_scheduler
+        else build_constant_scheduler(optimizer)
+    )
 
     args.save_dir.mkdir(parents=True, exist_ok=True)
     history = []
@@ -204,6 +222,10 @@ def main() -> None:
     print(f"Label smoothing: {config.label_smoothing}")
     print(f"Shared embeddings: {config.share_embeddings}")
     print(f"Weight tying: {config.weight_tying}")
+    print(f"Norm type: {config.norm_type}")
+    print(f"Activation: {config.activation}")
+    print(f"Scheduler: {config.use_scheduler}")
+    print(f"Grad clip: {config.grad_clip}")
 
     for epoch in range(1, args.epochs + 1):
         start = time.time()

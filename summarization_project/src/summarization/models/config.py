@@ -21,12 +21,15 @@ class TransformerConfig:
     d_ff: int = 1024
     dropout: float = 0.1
     max_position: int = 1024
+    norm_type: str = "pre"
+    activation: str = "gelu"
 
     label_smoothing: float = 0.1
     learning_rate: float = 3e-4
     weight_decay: float = 1e-4
     warmup_steps: int = 1000
     grad_clip: float = 1.0
+    use_scheduler: bool = True
 
     weight_tying: bool = True
     share_embeddings: bool = True
@@ -34,3 +37,7 @@ class TransformerConfig:
     def __post_init__(self) -> None:
         if self.d_model % self.num_heads != 0:
             raise ValueError("d_model must be divisible by num_heads")
+        if self.norm_type not in {"pre", "post"}:
+            raise ValueError("norm_type must be 'pre' or 'post'")
+        if self.activation not in {"gelu", "relu"}:
+            raise ValueError("activation must be 'gelu' or 'relu'")

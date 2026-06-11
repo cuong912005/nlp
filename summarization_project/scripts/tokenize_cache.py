@@ -85,35 +85,31 @@ def main() -> None:
     parser.add_argument("--tokenizer", type=Path, default=PROJECT_ROOT / "tokenizer" / "tokenizer_models" / "summary_bpe.model")
     parser.add_argument("--processed-dir", type=Path, default=PROJECT_ROOT / "data" / "processed")
     parser.add_argument("--cache-dir", type=Path, default=PROJECT_ROOT / "data" / "cached")
+    parser.add_argument("--splits", nargs="+", default=["train", "valid"])
     parser.add_argument("--max-source-len", type=int, default=512)
     parser.add_argument("--max-target-len", type=int, default=128)
     args = parser.parse_args()
 
     tokenizer = SummaryTokenizer(args.tokenizer)
 
-    train_stats = tokenize_split(
-        args.processed_dir / "train.jsonl",
-        args.cache_dir / "train_tokenized.pkl",
-        tokenizer,
-        args.max_source_len,
-        args.max_target_len,
-    )
-    valid_stats = tokenize_split(
-        args.processed_dir / "valid.jsonl",
-        args.cache_dir / "valid_tokenized.pkl",
-        tokenizer,
-        args.max_source_len,
-        args.max_target_len,
-    )
+    all_stats = {}
+    for split in args.splits:
+        all_stats[split] = tokenize_split(
+            args.processed_dir / f"{split}.jsonl",
+            args.cache_dir / f"{split}_tokenized.pkl",
+            tokenizer,
+            args.max_source_len,
+            args.max_target_len,
+        )
 
     stats_path = args.cache_dir / "tokenization_stats.json"
     with stats_path.open("w", encoding="utf-8") as f:
         # Lưu stats để báo cáo và chọn max length khi train trên server.
-        json.dump({"train": train_stats, "valid": valid_stats}, f, ensure_ascii=False, indent=2)
+        json.dump(all_stats, f, ensure_ascii=False, indent=2)
 
     print("\nDone.")
-    print(train_stats)
-    print(valid_stats)
+    for split, stats in all_stats.items():
+        print(split, stats)
     print(f"Stats saved to: {stats_path}")
 
 

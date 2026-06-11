@@ -4,6 +4,9 @@ __pycache__/
 .venv/
 venv/
 env/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
 
 # Generated data/cache/checkpoints can be rebuilt or copied separately.
 summarization_project/data/processed/
@@ -11,6 +14,16 @@ summarization_project/data/cached/
 summarization_project/tokenizer/tokenizer_models/
 summarization_project/checkpoints/
 summarization_project/outputs/
+results_report/
 
-# Large raw parquet files are kept local/server-side.
+# Raw parquet files are uploaded to Kaggle Dataset separately.
 *.parquet
+
+# Local archives and downloaded Kaggle outputs.
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Reference repo copied only for local consultation.
+NLP/

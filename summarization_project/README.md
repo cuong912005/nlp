@@ -85,6 +85,10 @@ Các cải tiến đã có trong code:
 Ví dụ chạy ablation trên server:
 
 ```bash
+# Transformer gốc kiểu Attention Is All You Need hơn: Post-LN + ReLU,
+# không label smoothing, không shared embedding, không weight tying.
+python scripts/train_baseline.py --epochs 10 --batch-size 8 --norm-type post --activation relu --label-smoothing 0.0 --no-share-embeddings --no-weight-tying --device cuda
+
 # Bản đầy đủ
 python scripts/train_baseline.py --epochs 10 --batch-size 8 --device cuda
 

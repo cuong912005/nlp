@@ -30,6 +30,8 @@ class SummarizationTransformer(nn.Module):
             config.num_heads,
             config.d_ff,
             config.dropout,
+            norm_type=config.norm_type,
+            activation=config.activation,
         )
         self.decoder = TransformerDecoder(
             config.num_decoder_layers,
@@ -37,6 +39,8 @@ class SummarizationTransformer(nn.Module):
             config.num_heads,
             config.d_ff,
             config.dropout,
+            norm_type=config.norm_type,
+            activation=config.activation,
         )
 
         self.output_projection = nn.Linear(config.d_model, config.vocab_size, bias=False)
